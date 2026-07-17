@@ -1,0 +1,295 @@
+import React, { useState, useEffect } from 'react';
+import api from '../../utils/api';
+import { FaPlus, FaTrash, FaEdit, FaCheck, FaTimes } from 'react-icons/fa';
+import { usePermissions } from '../../hooks/usePermissions';
+
+const Bulletins = () => {
+  const [bulletins, setBulletins] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [formData, setFormData] = useState({ headline: '', messages: [''], isActive: true });
+  const [error, setError] = useState('');
+  const { hasManage } = usePermissions('Sansthan Updates');
+
+  useEffect(() => {
+    fetchBulletins();
+  }, []);
+
+  const fetchBulletins = async () => {
+    try {
+      const res = await api.get('/bulletins');
+      if (res.data.success) {
+        setBulletins(res.data.bulletins);
+      }
+    } catch (err) {
+      console.error("Error fetching bulletins", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddMessage = () => {
+    setFormData({ ...formData, messages: [...formData.messages, ''] });
+  };
+
+  const handleMessageChange = (index, value) => {
+    const newMessages = [...formData.messages];
+    newMessages[index] = value;
+    setFormData({ ...formData, messages: newMessages });
+  };
+
+  const handleRemoveMessage = (index) => {
+    if (formData.messages.length > 1) {
+      const newMessages = formData.messages.filter((_, i) => i !== index);
+      setFormData({ ...formData, messages: newMessages });
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    try {
+      // Clean empty messages
+      const cleanMessages = formData.messages.filter(m => m.trim() !== '');
+      if (!formData.headline.trim() || cleanMessages.length === 0) {
+        setError('Headline and at least one message are required.');
+        return;
+      }
+      
+      const payload = { ...formData, messages: cleanMessages };
+      
+      let res;
+      if (editingId) {
+        res = await api.put(`/bulletins/${editingId}`, payload);
+      } else {
+        res = await api.post('/bulletins', payload);
+      }
+
+      if (res.data.success) {
+        setShowAddForm(false);
+        setEditingId(null);
+        setFormData({ headline: '', messages: [''], isActive: true });
+        fetchBulletins();
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || `Failed to ${editingId ? 'update' : 'create'} update`);
+    }
+  };
+
+  const handleEdit = (bulletin) => {
+    setFormData({
+      headline: bulletin.headline,
+      messages: bulletin.messages,
+      isActive: bulletin.isActive
+    });
+    setEditingId(bulletin._id);
+    setShowAddForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this update?")) {
+      try {
+        await api.delete(`/bulletins/${id}`);
+        fetchBulletins();
+      } catch (err) {
+        console.error("Failed to delete", err);
+      }
+    }
+  };
+
+  const toggleStatus = async (bulletin) => {
+    try {
+      await api.put(`/bulletins/${bulletin._id}`, { ...bulletin, isActive: !bulletin.isActive });
+      fetchBulletins();
+    } catch (err) {
+      console.error("Failed to toggle status", err);
+    }
+  };
+
+  if (loading) return <div className="p-8">Loading updates...</div>;
+
+  return (
+    <div className="p-6 md:p-10 w-full">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-caramel-deep font-serif flex items-center gap-2 tracking-tight">
+          Manage Sansthan Updates
+          {!hasManage && <span className="bg-yellow-100 text-yellow-800 text-xs font-bold px-3 py-1 rounded-full shadow-sm font-sans inline-block align-middle">View Only Access</span>}
+        </h1>
+        {hasManage && (
+          <div className="w-full md:w-auto">
+            <button 
+              onClick={() => {
+                setShowAddForm(!showAddForm);
+                if (!showAddForm) {
+                  setEditingId(null);
+                  setFormData({ headline: '', messages: [''], isActive: true });
+                }
+              }}
+              className="flex justify-center items-center gap-2 bg-slate-900 hover:bg-black text-white px-6 py-2.5 rounded-xl shadow-md transition-colors font-black w-full md:w-auto"
+            >
+              {showAddForm ? <><FaTimes /> Cancel</> : <><FaPlus /> Add Update</>}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {showAddForm && (
+        <form onSubmit={handleSubmit} className="bg-white p-8 rounded-2xl shadow-sm border border-stone-200 mb-10">
+          <h2 className="text-xl font-bold mb-6 text-caramel-dark">{editingId ? 'Edit Update' : 'Create New Update'}</h2>
+          
+          {error && <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-6 text-sm">{error}</div>}
+          
+          <div className="mb-6">
+            <label className="block text-sm font-bold text-stone-600 mb-2">Headline</label>
+            <input 
+              type="text" 
+              value={formData.headline}
+              onChange={(e) => setFormData({...formData, headline: e.target.value})}
+              className="w-full border border-stone-300 rounded-xl px-4 py-3 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+              placeholder="e.g. Mahashivratri Special"
+            />
+          </div>
+
+          <div className="mb-6">
+            <label className="block text-sm font-bold text-stone-600 mb-2">Messages (Bullet Points)</label>
+            {formData.messages.map((msg, index) => (
+              <div key={index} className="flex gap-3 mb-3">
+                <input 
+                  type="text" 
+                  value={msg}
+                  onChange={(e) => handleMessageChange(index, e.target.value)}
+                  className="flex-1 min-w-0 border border-stone-300 rounded-xl px-4 py-3 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                  placeholder={`Message ${index + 1}`}
+                />
+                <button 
+                  type="button" 
+                  onClick={() => handleRemoveMessage(index)}
+                  className="bg-red-50 text-red-500 px-4 rounded-xl hover:bg-red-100 transition-colors shrink-0"
+                  disabled={formData.messages.length === 1}
+                >
+                  <FaTrash />
+                </button>
+              </div>
+            ))}
+            <button 
+              type="button" 
+              onClick={handleAddMessage}
+              className="text-primary font-bold text-sm mt-2 hover:text-gold flex items-center gap-2"
+            >
+              <FaPlus size={12} /> Add another message
+            </button>
+          </div>
+
+          <div className="flex items-center gap-3 mb-8">
+            <input 
+              type="checkbox" 
+              id="isActive"
+              checked={formData.isActive}
+              onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
+              className="w-5 h-5 accent-primary"
+            />
+            <label htmlFor="isActive" className="font-semibold text-stone-700">Set as Active</label>
+          </div>
+
+          <button type="submit" className="bg-blue-900 hover:bg-blue-800 text-white font-bold py-3 px-8 rounded-xl shadow-md hover:shadow-lg transition-all w-full md:w-auto">
+            {editingId ? 'Save Changes' : 'Publish Update'}
+          </button>
+        </form>
+      )}
+
+      <div className="bg-transparent md:bg-white rounded-2xl md:shadow-sm border-0 md:border border-stone-200 overflow-hidden relative z-10">
+        <div className="w-full overflow-hidden">
+          <table className="w-full text-left block md:table">
+            <thead className="hidden md:table-header-group">
+              <tr className="bg-stone-50 border-b border-stone-200">
+                <th className="py-4 px-6 font-bold text-stone-600">Headline</th>
+                <th className="py-4 px-6 font-bold text-stone-600">Messages</th>
+                <th className="py-4 px-6 font-bold text-stone-600">Status</th>
+                <th className="py-4 px-6 font-bold text-stone-600 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bulletins.length === 0 ? (
+                <tr>
+                  <td colSpan="4" className="py-8 text-center text-stone-500 block md:table-cell">No updates found.</td>
+                </tr>
+              ) : (
+                bulletins.map((bulletin) => (
+                  <tr key={bulletin._id} className="flex flex-col md:table-row w-full bg-white md:bg-transparent border border-gray-100 md:border-b md:border-x-0 md:border-t-0 md:border-gray-50 rounded-xl md:rounded-none mb-4 md:mb-0 shadow-sm md:shadow-none hover:bg-stone-50 transition-colors">
+                    <td className="p-4 md:py-4 md:px-6 block md:table-cell border-b border-gray-50 md:border-none">
+                      <div className="flex md:hidden justify-between items-start mb-3">
+                        <span className="text-[11px] font-bold text-stone-600 uppercase tracking-wider bg-stone-100 px-2 py-0.5 rounded">Sansthan Update</span>
+                        <button 
+                          onClick={() => hasManage && toggleStatus(bulletin)}
+                          disabled={!hasManage}
+                          className={`px-2 py-1 text-[10px] font-bold rounded-md uppercase tracking-wider border shrink-0 ${bulletin.isActive ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'} ${!hasManage && 'cursor-not-allowed opacity-80'}`}
+                        >
+                          {bulletin.isActive ? 'Active' : 'Inactive'}
+                        </button>
+                      </div>
+                      <div>
+                        <div className="font-bold text-caramel-deep text-lg md:text-base break-words whitespace-normal">{bulletin.headline}</div>
+                        <div className="md:hidden mt-3 text-sm text-stone-600 break-words whitespace-normal">
+                          <span className="text-xs font-bold text-stone-500 uppercase block mb-1">Messages:</span>
+                          <ul className="list-disc pl-4 text-sm text-stone-600 space-y-1">
+                            {bulletin.messages.map((m, i) => <li key={i}>{m}</li>)}
+                          </ul>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="hidden md:table-cell py-4 px-6 break-words whitespace-normal">
+                      <ul className="list-disc pl-4 text-sm text-stone-600">
+                        {bulletin.messages.map((m, i) => <li key={i}>{m}</li>)}
+                      </ul>
+                    </td>
+                    <td className="hidden md:table-cell py-4 px-6">
+                      <button 
+                        onClick={() => hasManage && toggleStatus(bulletin)}
+                        disabled={!hasManage}
+                        className={`px-3 py-1 text-xs font-bold rounded-full ${bulletin.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} ${!hasManage && 'cursor-not-allowed opacity-80'}`}
+                      >
+                        {bulletin.isActive ? 'Active' : 'Inactive'}
+                      </button>
+                    </td>
+                    <td className="p-3 md:py-4 md:px-6 md:text-right block md:table-cell bg-stone-50 md:bg-transparent rounded-b-xl md:rounded-none">
+                      <div className="flex justify-between items-center w-full">
+                        <span className="md:hidden text-xs text-stone-500 uppercase tracking-wider font-semibold px-1">Actions</span>
+                        <div className="flex flex-wrap md:justify-end gap-2 w-full md:w-auto justify-end">
+                          {hasManage ? (
+                            <>
+                              <button 
+                                onClick={() => handleEdit(bulletin)}
+                                className="w-10 h-10 md:w-auto md:h-auto md:p-2 flex items-center justify-center text-blue-500 bg-white md:bg-transparent border border-stone-200 md:border-none hover:bg-blue-50 rounded-lg transition-colors flex-1 md:flex-none shadow-sm md:shadow-none"
+                                title="Edit Update"
+                              >
+                                <FaEdit />
+                              </button>
+                              <button 
+                                onClick={() => handleDelete(bulletin._id)}
+                                className="w-10 h-10 md:w-auto md:h-auto md:p-2 flex items-center justify-center text-red-500 bg-white md:bg-transparent border border-stone-200 md:border-none hover:bg-red-50 rounded-lg transition-colors flex-1 md:flex-none shadow-sm md:shadow-none"
+                                title="Delete Update"
+                              >
+                                <FaTrash />
+                              </button>
+                            </>
+                          ) : (
+                            <div className="text-xs text-gray-400 font-bold inline-block w-full text-right md:w-auto">View Only</div>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Bulletins;
+
