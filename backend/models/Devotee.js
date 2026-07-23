@@ -24,7 +24,6 @@ const devoteeSchema = new mongoose.Schema({
   gender: { type: String, enum: ["Male", "Female", "Other"], default: "Male" },
   dob: { type: Date },
   aadhaar: { type: String },
-  gotra: { type: String },
   kuldevta: { type: String },
   bloodGroup: { type: String },
   maritalStatus: { type: String, enum: ["Single", "Married", "Divorced", "Widowed", "Separated"], default: "Single" },
@@ -33,7 +32,6 @@ const devoteeSchema = new mongoose.Schema({
   address: { type: String },
   village: { type: String },
   taluka: { type: String },
-  district: { type: String },
   state: { type: String },
   city: { type: String },
   branch: { type: mongoose.Schema.Types.ObjectId, ref: "Branch", index: true },
@@ -126,9 +124,8 @@ devoteeSchema.pre("save", async function() {
   if (this.city) rawWords.push(this.city.toLowerCase());
   if (this.village) rawWords.push(this.village.toLowerCase());
   if (this.taluka) rawWords.push(this.taluka.toLowerCase());
-  if (this.district) rawWords.push(this.district.toLowerCase());
   if (this.state) rawWords.push(this.state.toLowerCase());
-  if (this.gotra) rawWords.push(this.gotra.toLowerCase());
+
 
   rawWords.forEach(word => {
     if (!word) return;

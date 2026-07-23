@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FiUsers, FiPlusCircle, FiSearch, FiAlertCircle, FiCheck, FiChevronRight } from 'react-icons/fi';
 import { FaCrown } from 'react-icons/fa';
 import api from '../../utils/api';
+import { indiaStates, stateCities } from '../../data/indiaStatesAndCities';
 
 const VanshawalPrompt = ({ user, onSetupComplete }) => {
   const [showOptions, setShowOptions] = useState(false);
@@ -20,12 +21,11 @@ const VanshawalPrompt = ({ user, onSetupComplete }) => {
   const [relationshipType, setRelationshipType] = useState('Son');
 
   // New family state
-  const [gotra, setGotra] = useState('');
   const [kuldevta, setKuldevta] = useState('');
   const [addressFields, setAddressFields] = useState({
     village: '',
     taluka: '',
-    district: '',
+    city: '',
     state: ''
   });
 
@@ -37,7 +37,6 @@ const VanshawalPrompt = ({ user, onSetupComplete }) => {
     try {
       // Devotee creating a new family tree for themselves makes them the head
       const res = await api.post('/family/create-self-root', {
-        gotra,
         kuldevta,
         ...addressFields
       });
@@ -171,27 +170,15 @@ const VanshawalPrompt = ({ user, onSetupComplete }) => {
             <div className="space-y-4 max-w-xl">
               <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Enter root family details to create a new Vanshawal:</p>
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-slate-600 text-[10px] font-black uppercase tracking-wider mb-1">Gotra (Optional)</label>
-                  <input 
-                    type="text" 
-                    value={gotra} 
-                    onChange={(e) => setGotra(e.target.value)}
-                    placeholder="e.g. Shiva" 
-                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold focus:outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-400/5"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-600 text-[10px] font-black uppercase tracking-wider mb-1">Kuldevta (Optional)</label>
-                  <input 
-                    type="text" 
-                    value={kuldevta} 
-                    onChange={(e) => setKuldevta(e.target.value)}
-                    placeholder="e.g. Shri Rudra" 
-                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold focus:outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-400/5"
-                  />
-                </div>
+              <div>
+                <label className="block text-slate-600 text-[10px] font-black uppercase tracking-wider mb-1">Kuldevta (Optional)</label>
+                <input 
+                  type="text" 
+                  value={kuldevta} 
+                  onChange={(e) => setKuldevta(e.target.value)}
+                  placeholder="e.g. Shri Rudra" 
+                  className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold focus:outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-400/5"
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -219,24 +206,31 @@ const VanshawalPrompt = ({ user, onSetupComplete }) => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-slate-600 text-[10px] font-black uppercase tracking-wider mb-1">District</label>
-                  <input 
-                    type="text" 
-                    value={addressFields.district} 
-                    onChange={(e) => setAddressFields({...addressFields, district: e.target.value})}
-                    placeholder="District" 
+                  <label className="block text-slate-600 text-[10px] font-black uppercase tracking-wider mb-1">State</label>
+                  <select 
+                    value={addressFields.state} 
+                    onChange={(e) => setAddressFields({...addressFields, state: e.target.value, city: ''})}
                     className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold focus:outline-none"
-                  />
+                  >
+                    <option value="">Select State</option>
+                    {indiaStates.map(st => (
+                      <option key={st} value={st}>{st}</option>
+                    ))}
+                  </select>
                 </div>
                 <div>
-                  <label className="block text-slate-600 text-[10px] font-black uppercase tracking-wider mb-1">State</label>
-                  <input 
-                    type="text" 
-                    value={addressFields.state} 
-                    onChange={(e) => setAddressFields({...addressFields, state: e.target.value})}
-                    placeholder="State" 
-                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold focus:outline-none"
-                  />
+                  <label className="block text-slate-600 text-[10px] font-black uppercase tracking-wider mb-1">City</label>
+                  <select 
+                    value={addressFields.city} 
+                    disabled={!addressFields.state}
+                    onChange={(e) => setAddressFields({...addressFields, city: e.target.value})}
+                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold focus:outline-none disabled:opacity-50"
+                  >
+                    <option value="">Select City</option>
+                    {(stateCities[addressFields.state] || []).map(ct => (
+                      <option key={ct} value={ct}>{ct}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -310,7 +304,7 @@ const VanshawalPrompt = ({ user, onSetupComplete }) => {
                           <p className="text-xs font-black text-slate-700 uppercase">{fam.name}</p>
                           {fam.isFamilyHead && <FaCrown className="text-amber-500 text-[10px]" />}
                         </div>
-                        <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Gotra: {fam.gotra || 'Not Provided'} • Devotee ID: {fam.devoteeId}</p>
+                        <p className="text-[10px] text-slate-400 font-semibold mt-0.5">City: {fam.city || 'Not Provided'} • Devotee ID: {fam.devoteeId}</p>
                       </div>
                       <FiChevronRight className="text-slate-400" />
                     </div>

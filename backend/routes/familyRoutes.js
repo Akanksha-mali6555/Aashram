@@ -16,7 +16,6 @@ router.get("/by-city", familyController.getFamiliesByCity);
 
 // Dynamic dropdown metadata routes
 router.get("/filters/states", familyController.getStates);
-router.get("/filters/districts", familyController.getDistricts);
 router.get("/filters/cities", familyController.getCities);
 router.get("/filters/villages", familyController.getVillages);
 

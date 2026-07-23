@@ -107,9 +107,6 @@
   .glass-card {
     @apply bg-white/80 backdrop-blur-lg border border-white shadow-soft;
   }
-  .glass-dark {
-    @apply bg-cream-dark/80 backdrop-blur-md border border-white/50 shadow-soft;
-  }
   .text-glow {
     text-shadow: 0 0 10px rgba(255, 103, 31, 0.4);
   }

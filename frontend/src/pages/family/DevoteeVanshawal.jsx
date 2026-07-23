@@ -24,6 +24,7 @@ import api from "../../utils/api";
 import { useAuth } from "../../context/AuthContext";
 import VanshawalTree from "../../components/family/VanshawalTree";
 import DevoteeProfileDetail from "../../components/family/DevoteeProfileDetail";
+import { indiaStates, stateCities } from "../../data/indiaStatesAndCities";
 
 const DevoteeVanshawal = () => {
   const { user } = useAuth();
@@ -49,7 +50,6 @@ const DevoteeVanshawal = () => {
 
   // Dynamic filter state from URL
   const initSurname = searchParams.get("surname") || "";
-  const initGotra = searchParams.get("gotra") || "";
   const initMinMembers = searchParams.get("minMembers") || "";
   const initMaxMembers = searchParams.get("maxMembers") || "";
   const initGenCount = searchParams.get("generationCount") || "";
@@ -67,7 +67,6 @@ const DevoteeVanshawal = () => {
   // Advanced Filter state
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
   const [surnameFilter, setSurnameFilter] = useState(initSurname);
-  const [gotraFilter, setGotraFilter] = useState(initGotra);
   const [minMembers, setMinMembers] = useState(initMinMembers);
   const [maxMembers, setMaxMembers] = useState(initMaxMembers);
   const [generationFilter, setGenerationFilter] = useState(initGenCount);
@@ -112,13 +111,11 @@ const DevoteeVanshawal = () => {
     aadhaar: "",
     address: "",
     branch: "",
-    gotra: "",
     kuldevta: "",
     bloodGroup: "",
     maritalStatus: "Single",
     village: "",
     taluka: "",
-    district: "",
     state: "",
     city: "",
   };
@@ -278,7 +275,6 @@ const DevoteeVanshawal = () => {
         village: selectedVillage,
         branchId: selectedBranchFilter,
         surname: surnameFilter,
-        gotra: gotraFilter,
         minMembers,
         maxMembers,
         generationCount: generationFilter,
@@ -310,7 +306,6 @@ const DevoteeVanshawal = () => {
       village: selectedVillage,
       branchId: selectedBranchFilter,
       surname: surnameFilter,
-      gotra: gotraFilter,
       minMembers,
       maxMembers,
       generationCount: generationFilter,
@@ -427,13 +422,12 @@ const DevoteeVanshawal = () => {
     setFormData({
       ...initialFormState,
       gender: defaultGender,
-      gotra: relative.gotra || "",
       kuldevta: relative.kuldevta || "",
       address: relative.address || "",
       village: relative.village || "",
       taluka: relative.taluka || "",
-      district: relative.district || "",
       state: relative.state || "",
+      city: relative.city || "",
       branch: relative.branch?._id || relative.branch || "",
     });
     setIsAddRelativeModalOpen(true);
@@ -689,17 +683,7 @@ const DevoteeVanshawal = () => {
                         className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none"
                       />
                     </div>
-                    <div>
-                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1.5">
-                        Gotra
-                      </label>
-                      <input
-                        type="text"
-                        value={gotraFilter}
-                        onChange={(e) => setGotraFilter(e.target.value)}
-                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none"
-                      />
-                    </div>
+
                     <div>
                       <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1.5">
                         Min Family Members
@@ -1161,19 +1145,7 @@ const DevoteeVanshawal = () => {
                       className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-saffron-500"
                     />
                   </div>
-                  <div>
-                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1.5">
-                      Gotra
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.gotra}
-                      onChange={(e) =>
-                        setFormData({ ...formData, gotra: e.target.value })
-                      }
-                      className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-saffron-500"
-                    />
-                  </div>
+
                   <div>
                     <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1.5">
                       Kuldevta
@@ -1292,48 +1264,42 @@ const DevoteeVanshawal = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1.5">
-                      District
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.district}
-                      onChange={(e) =>
-                        setFormData({ ...formData, district: e.target.value })
-                      }
-                      className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-saffron-500"
-                      placeholder="District"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1.5">
                       State
                     </label>
-                    <input
-                      type="text"
+                    <select
                       value={formData.state}
                       onChange={(e) =>
-                        setFormData({ ...formData, state: e.target.value })
+                        setFormData({ ...formData, state: e.target.value, city: "" })
                       }
                       className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-saffron-500"
-                      placeholder="State"
-                    />
+                    >
+                      <option value="">Select State</option>
+                      {indiaStates.map((st) => (
+                        <option key={st} value={st}>
+                          {st}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1.5">
                       City
                     </label>
-                    <input
-                      type="text"
+                    <select
                       value={formData.city}
+                      disabled={!formData.state}
                       onChange={(e) =>
                         setFormData({ ...formData, city: e.target.value })
                       }
-                      className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-saffron-500"
-                      placeholder="City"
-                    />
+                      className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-saffron-500 disabled:opacity-50"
+                    >
+                      <option value="">Select City</option>
+                      {(stateCities[formData.state] || []).map((ct) => (
+                        <option key={ct} value={ct}>
+                          {ct}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 
@@ -1506,19 +1472,7 @@ const DevoteeVanshawal = () => {
                       className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none"
                     />
                   </div>
-                  <div>
-                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1.5">
-                      Gotra
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.gotra}
-                      onChange={(e) =>
-                        setFormData({ ...formData, gotra: e.target.value })
-                      }
-                      className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none"
-                    />
-                  </div>
+
                   <div>
                     <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1.5">
                       Kuldevta
@@ -1617,48 +1571,42 @@ const DevoteeVanshawal = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1.5">
-                      District
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.district}
-                      onChange={(e) =>
-                        setFormData({ ...formData, district: e.target.value })
-                      }
-                      className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-saffron-500"
-                      placeholder="District"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1.5">
                       State
                     </label>
-                    <input
-                      type="text"
+                    <select
                       value={formData.state}
                       onChange={(e) =>
-                        setFormData({ ...formData, state: e.target.value })
+                        setFormData({ ...formData, state: e.target.value, city: "" })
                       }
                       className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-saffron-500"
-                      placeholder="State"
-                    />
+                    >
+                      <option value="">Select State</option>
+                      {indiaStates.map((st) => (
+                        <option key={st} value={st}>
+                          {st}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1.5">
                       City
                     </label>
-                    <input
-                      type="text"
+                    <select
                       value={formData.city}
+                      disabled={!formData.state}
                       onChange={(e) =>
                         setFormData({ ...formData, city: e.target.value })
                       }
-                      className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-saffron-500"
-                      placeholder="City"
-                    />
+                      className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-saffron-500 disabled:opacity-50"
+                    >
+                      <option value="">Select City</option>
+                      {(stateCities[formData.state] || []).map((ct) => (
+                        <option key={ct} value={ct}>
+                          {ct}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 

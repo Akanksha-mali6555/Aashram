@@ -24,6 +24,7 @@ import {
   getPasswordError,
   getMobileError,
 } from "../../utils/validationUtils";
+import { indiaStates, stateCities } from "../../data/indiaStatesAndCities";
 
 const RegisterDevotee = () => {
   const navigate = useNavigate();
@@ -45,14 +46,13 @@ const RegisterDevotee = () => {
     gender: "Male",
     dob: "",
     aadhaar: "",
-    gotra: "",
     kuldevta: "",
     bloodGroup: "A+",
     maritalStatus: "Single",
     address: "",
     village: "",
     taluka: "",
-    district: "",
+    city: "",
     state: "",
     registerOption: "newFamily", // 'newFamily' or 'joinFamily'
     relativeId: "",
@@ -97,17 +97,16 @@ const RegisterDevotee = () => {
     setSelectedRelative(relative);
     setSearchResults([]);
 
-    // Automatically prefill gotra, kuldevta, and address from relative
+    // Automatically prefill kuldevta, address, village, taluka, city, state from relative
     setFormData((prev) => ({
       ...prev,
       relativeId: relative._id,
-      gotra: relative.gotra || prev.gotra,
       kuldevta: relative.kuldevta || prev.kuldevta,
       address: relative.address || prev.address,
       village: relative.village || prev.village,
       taluka: relative.taluka || prev.taluka,
-      district: relative.district || prev.district,
       state: relative.state || prev.state,
+      city: relative.city || prev.city,
     }));
   };
 
@@ -506,7 +505,7 @@ const RegisterDevotee = () => {
                                 {rel.name} ({rel.devoteeId})
                               </p>
                               <p className="text-[9px] text-slate-400 font-semibold mt-0.5">
-                                Gotra: {rel.gotra || "N/A"} • Branch:{" "}
+                                City: {rel.city || "N/A"} • Branch:{" "}
                                 {rel.branch?.name || "N/A"}
                               </p>
                             </div>
@@ -598,36 +597,19 @@ const RegisterDevotee = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-slate-700 text-[10px] font-black mb-1.5 uppercase tracking-wider ml-1">
-                      Gotra
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.gotra}
-                      onChange={(e) =>
-                        setFormData({ ...formData, gotra: e.target.value })
-                      }
-                      className="w-full bg-slate-50/50 border border-slate-200 text-slate-800 rounded-2xl px-4 py-3 text-xs font-bold outline-none"
-                      placeholder="Gotra name"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-slate-700 text-[10px] font-black mb-1.5 uppercase tracking-wider ml-1">
-                      Kuldevta
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.kuldevta}
-                      onChange={(e) =>
-                        setFormData({ ...formData, kuldevta: e.target.value })
-                      }
-                      className="w-full bg-slate-50/50 border border-slate-200 text-slate-800 rounded-2xl px-4 py-3 text-xs font-bold outline-none"
-                      placeholder="Family Deity"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-slate-700 text-[10px] font-black mb-1.5 uppercase tracking-wider ml-1">
+                    Kuldevta
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.kuldevta}
+                    onChange={(e) =>
+                      setFormData({ ...formData, kuldevta: e.target.value })
+                    }
+                    className="w-full bg-slate-50/50 border border-slate-200 text-slate-800 rounded-2xl px-4 py-3 text-xs font-bold outline-none"
+                    placeholder="Family Deity"
+                  />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -724,31 +706,42 @@ const RegisterDevotee = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-slate-700 text-[10px] font-black mb-1.5 uppercase tracking-wider ml-1">
-                      District
+                      State
                     </label>
-                    <input
-                      type="text"
-                      value={formData.district}
+                    <select
+                      value={formData.state}
                       onChange={(e) =>
-                        setFormData({ ...formData, district: e.target.value })
+                        setFormData({ ...formData, state: e.target.value, city: "" })
                       }
                       className="w-full bg-slate-50/50 border border-slate-200 text-slate-800 rounded-2xl px-4 py-3 text-xs font-bold outline-none"
-                      placeholder="District"
-                    />
+                    >
+                      <option value="">Select State</option>
+                      {indiaStates.map((st) => (
+                        <option key={st} value={st}>
+                          {st}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-slate-700 text-[10px] font-black mb-1.5 uppercase tracking-wider ml-1">
-                      State
+                      City
                     </label>
-                    <input
-                      type="text"
-                      value={formData.state}
+                    <select
+                      value={formData.city}
+                      disabled={!formData.state}
                       onChange={(e) =>
-                        setFormData({ ...formData, state: e.target.value })
+                        setFormData({ ...formData, city: e.target.value })
                       }
-                      className="w-full bg-slate-50/50 border border-slate-200 text-slate-800 rounded-2xl px-4 py-3 text-xs font-bold outline-none"
-                      placeholder="State"
-                    />
+                      className="w-full bg-slate-50/50 border border-slate-200 text-slate-800 rounded-2xl px-4 py-3 text-xs font-bold outline-none disabled:opacity-50"
+                    >
+                      <option value="">Select City</option>
+                      {(stateCities[formData.state] || []).map((ct) => (
+                        <option key={ct} value={ct}>
+                          {ct}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 

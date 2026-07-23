@@ -121,9 +121,7 @@ const runMigration = async () => {
       if (devotee.city) rawWords.push(devotee.city.toLowerCase());
       if (devotee.village) rawWords.push(devotee.village.toLowerCase());
       if (devotee.taluka) rawWords.push(devotee.taluka.toLowerCase());
-      if (devotee.district) rawWords.push(devotee.district.toLowerCase());
       if (devotee.state) rawWords.push(devotee.state.toLowerCase());
-      if (devotee.gotra) rawWords.push(devotee.gotra.toLowerCase());
 
       rawWords.forEach(word => {
         if (!word) return;

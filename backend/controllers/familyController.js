@@ -65,7 +65,7 @@ const getRelationToHead = async (devotee, root) => {
 exports.searchFamilies = async (req, res) => {
   try {
     const {
-      q, state, district, city, taluka, village, branchId, surname,
+      q, state, city, taluka, village, branchId, surname,
       familyHead, minMembers, maxMembers, generationCount, sortBy, sortOrder,
       page = 1, limit = 20, showAll
     } = req.query;
@@ -85,7 +85,6 @@ exports.searchFamilies = async (req, res) => {
     if (state) matchCriteria.normalizedState = state.toLowerCase().trim();
     if (city) matchCriteria.normalizedCity = city.toLowerCase().trim();
     if (village) matchCriteria.normalizedVillage = village.toLowerCase().trim();
-    if (district) matchCriteria.district = { $regex: new RegExp(`^${district.trim()}$`, "i") };
     if (taluka) matchCriteria.taluka = { $regex: new RegExp(`^${taluka.trim()}$`, "i") };
     if (branchId) matchCriteria.branch = new mongoose.Types.ObjectId(branchId);
     if (surname) matchCriteria.normalizedSurname = surname.toLowerCase().trim();
@@ -340,25 +339,11 @@ exports.getStates = async (req, res) => {
   }
 };
 
-exports.getDistricts = async (req, res) => {
-  try {
-    const { state } = req.query;
-    const match = { isDeleted: { $ne: true }, district: { $ne: null, $ne: "" } };
-    if (state) match.normalizedState = state.toLowerCase().trim();
-    if (req.user.role === 'BranchManager') match.branch = req.user.branch;
-    const districts = await Devotee.distinct("district", match);
-    res.status(200).json({ success: true, data: districts.sort() });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-};
-
 exports.getCities = async (req, res) => {
   try {
-    const { state, district } = req.query;
+    const { state } = req.query;
     const match = { isDeleted: { $ne: true }, city: { $ne: null, $ne: "" } };
     if (state) match.normalizedState = state.toLowerCase().trim();
-    if (district) match.district = district.trim();
     if (req.user.role === 'BranchManager') match.branch = req.user.branch;
     const cities = await Devotee.distinct("city", match);
     res.status(200).json({ success: true, data: cities.sort() });
@@ -576,12 +561,11 @@ exports.createSelfRoot = async (req, res) => {
     }
     
     devotee.isFamilyHead = true;
-    devotee.gotra = req.body.gotra;
     devotee.kuldevta = req.body.kuldevta;
     devotee.village = req.body.village;
     devotee.taluka = req.body.taluka;
-    devotee.district = req.body.district;
     devotee.state = req.body.state;
+    devotee.city = req.body.city;
     devotee.generationLevel = 1;
     
     await devotee.save();
@@ -793,7 +777,6 @@ exports.getFamilyReportsData = async (req, res) => {
             headName: head.name,
             memberCount: fc.memberCount,
             size: fc.memberCount,
-            gotra: head.gotra || "N/A",
             state: head.state || "N/A",
             city: head.city || "N/A",
             branch: head.branch?.name || "Main Trust",
