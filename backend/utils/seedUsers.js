@@ -1,4 +1,4 @@
-const bcrypt = require('bcryptjs');
+const { hashPassword } = require('./passwordUtils');
 
 // List of seed users for development
 const seedUsers = [
@@ -61,7 +61,7 @@ async function createSeedUsers() {
         console.log(`[SEED] ${seed.name} account ready`);
         continue;
       }
-      const passwordHash = await bcrypt.hash(seed.password, 10);
+      const passwordHash = await hashPassword(seed.password);
       const newUser = new User({
         name: seed.name,
         email: seed.email.toLowerCase(),

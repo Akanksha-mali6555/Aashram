@@ -4,7 +4,7 @@ const Admin = require("./models/Admin");
 const Trustee = require("./models/Trustee");
 const Devotee = require("./models/Devotee");
 const BranchManager = require("./models/BranchManager");
-const DocumentHandler = require("./models/DocumentHandler");
+const DocumentAdmin = require("./models/DocumentAdmin");
 const Branch = require("./models/Branch");
 const connectDB = require("./config/db");
 
@@ -21,7 +21,7 @@ const seedUsers = async () => {
     await Trustee.deleteMany({});
     await Devotee.deleteMany({});
     await BranchManager.deleteMany({});
-    await DocumentHandler.deleteMany({});
+    await DocumentAdmin.deleteMany({});
 
     // 1. Seed Admin
     let admin = await Admin.create({
@@ -78,13 +78,14 @@ const seedUsers = async () => {
     });
     console.log("Branch Manager seeded.");
 
-    // 6. Seed Document Handler
-    let docHandler = await DocumentHandler.create({
-      username: "clerk01",
+    // 6. Seed Document Admin
+    let docAdmin = await DocumentAdmin.create({
+      email: "admin@documents.com",
       password: defaultPassword,
-      role: "DocumentHandler"
+      contactNo: "9876543212",
+      role: "document_admin"
     });
-    console.log("Document Handler seeded.");
+    console.log("Document Admin seeded.");
 
     console.log("Seeding complete!");
     process.exit(0);
