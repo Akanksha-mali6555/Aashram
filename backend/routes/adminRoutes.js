@@ -20,6 +20,7 @@ router.delete("/trustees/:id", adminController.deleteTrustee);
 
 // Branch Managers
 router.get("/branch-managers", adminController.getBranchManagers);
+router.get("/branch-managers/next-id", adminController.getNextBranchManagerId);
 router.post("/branch-managers/send-otp", adminController.sendBranchManagerOtp);
 router.post("/branch-managers/verify-otp", adminController.verifyBranchManagerOtp);
 router.post("/branch-managers", upload.single('audioTrack'), adminController.createBranchManager);

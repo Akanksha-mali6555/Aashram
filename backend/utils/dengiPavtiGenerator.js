@@ -110,12 +110,29 @@ exports.generateDengiPavtiPdf = async (rawDonation) => {
     const templatePath = path.join(__dirname, '../templates/donationTemplate.html');
     let htmlContent = fs.readFileSync(templatePath, 'utf8');
 
+    const encodeImage = (filePath) => {
+      if (fs.existsSync(filePath)) {
+        const ext = path.extname(filePath).substring(1);
+        const base64Data = fs.readFileSync(filePath, 'base64');
+        return `data:image/${ext};base64,${base64Data}`;
+      }
+      return '';
+    };
+
+    const swamijiPath1 = path.join(__dirname, '../../frontend/src/assets/kolekar_SP_1.jpeg');
+    const swamijiPath2 = path.join(__dirname, '../../frontend/src/assets/kolekar_SP_2.jpeg');
+    const swamijiImage1 = encodeImage(swamijiPath1);
+    let swamijiImage2 = encodeImage(swamijiPath2);
+    if (!swamijiImage2) swamijiImage2 = swamijiImage1;
+
     htmlContent = htmlContent.replace(/{{receiptNumber}}/g, receiptNo);
     htmlContent = htmlContent.replace(/{{date}}/g, dateStr);
     htmlContent = htmlContent.replace(/{{donorName}}/g, bilingualName);
     htmlContent = htmlContent.replace(/{{address}}/g, bilingualAddress);
     htmlContent = htmlContent.replace(/{{amountInWords}}/g, bilingualAmountWords);
     htmlContent = htmlContent.replace(/{{amount}}/g, amount);
+    htmlContent = htmlContent.replace(/{{swamijiImage1}}/g, swamijiImage1);
+    htmlContent = htmlContent.replace(/{{swamijiImage2}}/g, swamijiImage2);
 
     const browser = await getBrowser();
     

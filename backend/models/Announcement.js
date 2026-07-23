@@ -33,7 +33,7 @@ const announcementSchema = new mongoose.Schema({
   
   // Authorship
   createdBy: { type: mongoose.Schema.Types.ObjectId, required: false }, // Could be required if we want strict authorship
-  createdByModel: { type: String, enum: ['Admin', 'Trustee', 'BranchManager'], required: false }
+  createdByModel: { type: String, enum: ['Admin', 'Trustee', 'BranchManager', 'DocumentAdmin', 'DocumentHandler', 'document_admin', 'Accountant'], required: false }
 }, { timestamps: true });
 
 module.exports = mongoose.model("Announcement", announcementSchema);

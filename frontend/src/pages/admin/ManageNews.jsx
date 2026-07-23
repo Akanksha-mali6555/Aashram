@@ -190,7 +190,14 @@ const ManageNews = () => {
   };
 
   const handleGalleryFilesChange = (e) => {
-    setGalleryImageFiles(Array.from(e.target.files));
+    if (e.target.files && e.target.files.length > 0) {
+      const newFiles = Array.from(e.target.files);
+      setGalleryImageFiles(prev => [...prev, ...newFiles]);
+    }
+  };
+
+  const removeNewGalleryFile = (indexToRemove) => {
+    setGalleryImageFiles(prev => prev.filter((_, i) => i !== indexToRemove));
   };
 
   const removeRetainedImage = (url) => {
@@ -768,8 +775,15 @@ const ManageNews = () => {
                           <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">New Uploads ({galleryImageFiles.length})</label>
                           <div className="flex flex-wrap gap-3">
                             {galleryImageFiles.map((file, i) => (
-                              <div key={i} className="w-16 h-16 border border-stone-200 rounded overflow-hidden bg-stone-50 flex items-center justify-center relative">
+                              <div key={i} className="relative group w-16 h-16 border border-stone-200 rounded overflow-hidden bg-stone-50 flex items-center justify-center">
                                 <img src={URL.createObjectURL(file)} className="w-full h-full object-cover" alt="New Gallery item" />
+                                <button 
+                                  type="button" 
+                                  onClick={() => removeNewGalleryFile(i)} 
+                                  className="absolute top-0 right-0 w-4 h-4 bg-red-500 hover:bg-red-700 text-white rounded-full flex items-center justify-center text-[8px]"
+                                >
+                                  ✕
+                                </button>
                               </div>
                             ))}
                           </div>

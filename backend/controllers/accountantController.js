@@ -107,7 +107,7 @@ exports.createAccountant = async (req, res) => {
 // Get All Accountants
 exports.getAccountants = async (req, res) => {
   try {
-    const accountants = await Accountant.find({ accountStatus: "active" }).select("-password");
+    const accountants = await Accountant.find().select("-password");
     res.status(200).json({ success: true, accountants });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -144,7 +144,7 @@ exports.updateAccountant = async (req, res) => {
   }
 };
 
-// Soft Delete Accountant
+// Delete Accountant from MongoDB
 exports.deleteAccountant = async (req, res) => {
   try {
     const { id } = req.params;
@@ -152,18 +152,17 @@ exports.deleteAccountant = async (req, res) => {
     
     if (!accountant) return res.status(404).json({ success: false, message: "Accountant not found" });
 
-    accountant.accountStatus = "inactive";
-    await accountant.save();
+    await Accountant.findByIdAndDelete(id);
 
     await logAction({
       userId: req.user._id,
       role: req.user.role,
       action: "Deleted Accountant",
-      details: { accountantId: accountant._id, email: accountant.email },
+      details: { accountantId: id, email: accountant.email },
       ipAddress: req.ip
     });
 
-    res.status(200).json({ success: true, message: "Accountant deleted successfully" });
+    res.status(200).json({ success: true, message: "Accountant deleted successfully from database" });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -198,6 +197,7 @@ exports.updateProfile = async (req, res) => {
 
     const userResponse = accountant.toObject();
     delete userResponse.password;
+    userResponse.name = accountant.fullName;
 
     res.status(200).json({ success: true, message: "Profile updated successfully", user: userResponse });
   } catch (error) {

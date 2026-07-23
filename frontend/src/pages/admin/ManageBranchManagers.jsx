@@ -73,7 +73,7 @@ const ManageBranchManagers = () => {
     }
   };
 
-  const handleOpenModal = (mode, manager = null) => {
+  const handleOpenModal = async (mode, manager = null) => {
     setModalMode(mode);
     setOtpSent(false);
     setOtpVerified(false);
@@ -96,7 +96,16 @@ const ManageBranchManagers = () => {
       });
     } else {
       setSelectedManager(null);
-      setFormData({ name: '', managerId: '', email: '', mobile: '', address: '', branch: '', password: '', confirmPassword: '' });
+      let autoId = 'BM-001';
+      try {
+        const res = await api.get('/admins/branch-managers/next-id');
+        if (res.data?.success && res.data?.managerId) {
+          autoId = res.data.managerId;
+        }
+      } catch (err) {
+        console.error("Failed to fetch next manager ID", err);
+      }
+      setFormData({ name: '', managerId: autoId, email: '', mobile: '', address: '', branch: '', password: '', confirmPassword: '' });
     }
     setIsModalOpen(true);
   };
@@ -339,15 +348,15 @@ const ManageBranchManagers = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Manager ID</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Manager ID (Auto-Incremented)</label>
                     <input
                       type="text"
                       value={formData.managerId}
                       onChange={(e) => setFormData({ ...formData, managerId: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all disabled:bg-gray-100"
-                      placeholder="e.g. BM001"
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all bg-gray-100 font-bold text-slate-700"
+                      placeholder="e.g. BM-001"
                       required
-                      disabled={modalMode === 'edit'}
+                      readOnly
                     />
                   </div>
 

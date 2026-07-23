@@ -13,6 +13,30 @@ const branchManagerSchema = new mongoose.Schema({
   profilePhoto: { type: String, default: "" }
 }, { timestamps: true });
 
+branchManagerSchema.pre("validate", async function() {
+  if (!this.managerId || !this.managerId.trim()) {
+    const BranchManagerModel = mongoose.models.BranchManager || mongoose.model("BranchManager", branchManagerSchema);
+    const count = await BranchManagerModel.countDocuments();
+    if (count === 0) {
+      this.managerId = "BM-001";
+    } else {
+      const managers = await BranchManagerModel.find({}, { managerId: 1 });
+      let maxNum = 0;
+      managers.forEach((m) => {
+        if (m.managerId) {
+          const match = m.managerId.match(/^BM-?(\d+)/i);
+          if (match) {
+            const num = parseInt(match[1], 10);
+            if (num > maxNum) maxNum = num;
+          }
+        }
+      });
+      const nextNum = maxNum + 1;
+      this.managerId = `BM-${String(nextNum).padStart(3, "0")}`;
+    }
+  }
+});
+
 branchManagerSchema.pre("save", async function() {
   if (!this.isModified("password")) {
     return;

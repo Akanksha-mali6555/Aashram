@@ -240,6 +240,8 @@ function AppRoutes() {
           <Route path="/trustee/vanshawal/dashboard" element={<RoleProtectedRoute allowedRoles={['Trustee']}><FamilyDashboard /></RoleProtectedRoute>} />
           <Route path="/trustee/vanshawal/reports" element={<RoleProtectedRoute allowedRoles={['Trustee']}><FamilyReports /></RoleProtectedRoute>} />
           <Route path="/trustee/contact-enquiries" element={<RoleProtectedRoute allowedRoles={['Trustee', 'Admin']}><TrusteeContactEnquiries /></RoleProtectedRoute>} />
+          <Route path="/trustee/notice-generator" element={<RoleProtectedRoute allowedRoles={['Trustee', 'Admin']}><NoticeGenerator /></RoleProtectedRoute>} />
+          <Route path="/trustee/issue-notice" element={<RoleProtectedRoute allowedRoles={['Trustee', 'Admin']}><NoticeGenerator /></RoleProtectedRoute>} />
 
           {/* Branch Manager Protected Routes */}
           <Route path="/branch/dashboard" element={<RoleProtectedRoute allowedRoles={['BranchManager']}><BranchDashboard /></RoleProtectedRoute>} />

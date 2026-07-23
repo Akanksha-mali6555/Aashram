@@ -247,3 +247,7 @@ exports.getRecentLogins = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+const documentRequestController = require("./documentRequestController");
+exports.getDocumentRequests = documentRequestController.getDocumentRequests;
+exports.processDocumentRequest = documentRequestController.processDocumentRequest;

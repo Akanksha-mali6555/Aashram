@@ -87,11 +87,14 @@ exports.createAnnouncement = async (req, res) => {
   try {
     const user = req.user;
     if (user.role === 'BranchManager') {
+      const bId = user.branch?._id || user.branch;
       req.body.audienceType = ['Specific Branches'];
-      req.body.targetBranches = [user.branchId];
+      if (bId) {
+        req.body.targetBranches = [bId];
+      }
     }
     req.body.createdBy = user._id;
-    req.body.createdByModel = user.role;
+    req.body.createdByModel = (user.role === 'document_admin' || user.role === 'DocumentHandler') ? 'DocumentAdmin' : user.role;
     
     const announcement = new Announcement(req.body);
     await announcement.save();

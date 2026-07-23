@@ -236,9 +236,38 @@ exports.verifyBranchManagerOtp = async (req, res) => {
   }
 };
 
+const generateNextManagerId = async () => {
+  const count = await BranchManager.countDocuments();
+  if (count === 0) {
+    return "BM-001";
+  }
+  const managers = await BranchManager.find({}, { managerId: 1 });
+  let maxNum = 0;
+  managers.forEach((m) => {
+    if (m.managerId) {
+      const match = m.managerId.match(/^BM-?(\d+)/i);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (num > maxNum) maxNum = num;
+      }
+    }
+  });
+  const nextNum = maxNum + 1;
+  return `BM-${String(nextNum).padStart(3, "0")}`;
+};
+
+exports.getNextBranchManagerId = async (req, res) => {
+  try {
+    const managerId = await generateNextManagerId();
+    res.status(200).json({ success: true, managerId });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 exports.createBranchManager = async (req, res) => {
   try {
-    const { name, managerId, email, mobile, address, branch, password, verifiedToken } = req.body;
+    let { name, managerId, email, mobile, address, branch, password, verifiedToken } = req.body;
 
     // Verify Token
     try {
@@ -250,8 +279,14 @@ exports.createBranchManager = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid or expired verification token" });
     }
 
-    let exists = await BranchManager.findOne({ managerId });
-    if (exists) return res.status(400).json({ success: false, message: "Manager ID already exists" });
+    if (!managerId || !managerId.trim()) {
+      managerId = await generateNextManagerId();
+    } else {
+      let exists = await BranchManager.findOne({ managerId });
+      if (exists) {
+        managerId = await generateNextManagerId();
+      }
+    }
 
     const bm = await BranchManager.create({ name, managerId, email, mobile, address, branch, password });
     

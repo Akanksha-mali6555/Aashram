@@ -26,6 +26,10 @@ router.get("/documents", checkPermission('Documents'), trusteeController.getAllD
 router.get("/documents/pending", checkPermission('Documents'), trusteeController.getPendingDocuments);
 router.put("/documents/:id/review", checkPermission('Documents'), trusteeController.reviewDocument);
 
+// Document Approval Workflow Requests
+router.get("/documents/requests", checkPermission('Documents'), trusteeController.getDocumentRequests);
+router.put("/documents/requests/:id/action", checkPermission('Documents'), trusteeController.processDocumentRequest);
+
 // Document Deletion Request Routes
 router.get("/documents/deletion-requests", checkPermission('Documents'), trusteeController.getDeletionRequests);
 router.put("/documents/:id/review-deletion", checkPermission('Documents'), trusteeController.reviewDeletionRequest);

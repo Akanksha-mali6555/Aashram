@@ -95,8 +95,14 @@ const Profile = () => {
       });
       toast.success("Profile updated successfully");
       
-      // Update AuthContext user
-      login(sessionStorage.getItem('token') || localStorage.getItem('token'), res.data.user);
+      // Update AuthContext user state instantly
+      const updatedUser = {
+        ...user,
+        ...res.data.user,
+        name: res.data.user?.fullName || res.data.user?.name || formData.fullName,
+        fullName: res.data.user?.fullName || formData.fullName
+      };
+      setUser(updatedUser);
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to update profile");
     } finally {

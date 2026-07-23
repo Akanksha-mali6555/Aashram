@@ -336,12 +336,6 @@ const Layout = ({ children, user }) => {
       { name: "Documents", path: "/admin/documents", icon: <FaFileAlt /> },
       { name: "Donations", path: "/admin/donations", icon: <FaDonate /> },
       { name: "Events", path: "/admin/events", icon: <FaCalendarAlt /> },
-      { name: "Receipts", path: "/admin/receipts", icon: <FaReceipt /> },
-      {
-        name: "Issue Notice",
-        path: "/admin/notice-generator",
-        icon: <FaFileAlt />,
-      },
       {
         name: "Sansthan Updates",
         path: "/trustee/bulletins",
@@ -459,6 +453,8 @@ const Layout = ({ children, user }) => {
                     alt="Profile"
                     className="w-full h-full object-cover"
                   />
+                ) : user?.fullName ? (
+                  user.fullName.charAt(0).toUpperCase()
                 ) : user?.name ? (
                   user.name.charAt(0).toUpperCase()
                 ) : user?.displayName ? (
@@ -471,7 +467,7 @@ const Layout = ({ children, user }) => {
                 className={`flex flex-col truncate ${isCollapsed ? "block md:hidden" : "block"}`}
               >
                 <span className="text-sm font-bold text-white truncate">
-                  {user?.name || user?.displayName || "Main System Admin"}
+                  {user?.fullName || user?.name || user?.displayName || "Main System Admin"}
                 </span>
                 <span className="text-[10px] text-gray-400 uppercase tracking-wider truncate">
                   {user?.role || "Admin"}
@@ -526,7 +522,7 @@ const Layout = ({ children, user }) => {
             <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-6 border-l border-gray-100 shrink-0">
               <div className="text-right hidden sm:block">
                 <p className="text-sm font-bold text-gray-900">
-                  {user?.name || user?.displayName || "User"}
+                  {user?.fullName || user?.name || user?.displayName || "User"}
                 </p>
                 <p className="text-xs text-gray-400 font-semibold tracking-wider">
                   {user?.email || "admin@temple.com"}
@@ -547,6 +543,8 @@ const Layout = ({ children, user }) => {
                     alt="Profile"
                     className="w-full h-full object-cover"
                   />
+                ) : user?.fullName ? (
+                  user.fullName.charAt(0).toUpperCase()
                 ) : user?.name ? (
                   user.name.charAt(0).toUpperCase()
                 ) : user?.displayName ? (

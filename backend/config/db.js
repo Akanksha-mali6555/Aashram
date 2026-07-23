@@ -1,4 +1,13 @@
 const mongoose = require("mongoose");
+const dns = require("dns");
+
+// Configure Node.js DNS resolution order and fallback servers to prevent querySrv ECONNREFUSED on MongoDB Atlas
+try {
+  dns.setDefaultResultOrder("ipv4first");
+  dns.setServers(["8.8.8.8", "1.1.1.1", "8.8.4.4"]);
+} catch (dnsErr) {
+  console.warn("Could not set custom DNS servers:", dnsErr.message);
+}
 
 // Set up connection event listeners
 mongoose.connection.on("connected", () => {

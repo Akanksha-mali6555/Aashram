@@ -403,6 +403,9 @@ const Announcements = () => {
                     return Math.floor(seconds) + "s ago";
                   };
 
+                  const creatorId = ann.createdBy?._id || ann.createdBy;
+                  const isMine = creatorId && String(creatorId) === String(user?._id);
+
                   return (
                     <motion.div 
                       key={ann._id} 
@@ -438,10 +441,16 @@ const Announcements = () => {
                           </div>
                         </div>
                         
-                        <div className="flex items-center gap-2">
-                          <button onClick={() => handleEdit(ann)} className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors" title="Edit"><FiEdit2 size={16} /></button>
-                          <button onClick={() => handleDelete(ann._id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-full transition-colors" title="Delete"><FiTrash2 size={16} /></button>
-                        </div>
+                        {isMine ? (
+                          <div className="flex items-center gap-2">
+                            <button onClick={() => handleEdit(ann)} className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors" title="Edit"><FiEdit2 size={16} /></button>
+                            <button onClick={() => handleDelete(ann._id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-full transition-colors" title="Delete"><FiTrash2 size={16} /></button>
+                          </div>
+                        ) : (
+                          <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-2.5 py-1 rounded-full border border-slate-100">
+                            Read Only
+                          </span>
+                        )}
                       </div>
 
                       {/* Content Body */}

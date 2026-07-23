@@ -75,6 +75,13 @@ exports.createEvent = async (req, res) => {
        eventData.tags = eventData.tags.split(',').map(tag => tag.trim());
     }
 
+    if (req.user && req.user.role === 'BranchManager') {
+      const userBranch = req.user.branch?._id || req.user.branch;
+      if (userBranch) {
+        eventData.branch = userBranch;
+      }
+    }
+
     const event = new Event(eventData);
     await event.save();
     
@@ -115,8 +122,19 @@ exports.updateEvent = async (req, res) => {
        eventData.tags = eventData.tags.split(',').map(tag => tag.trim());
     }
 
+    const existingEvent = await Event.findById(req.params.id);
+    if (!existingEvent) return res.status(404).json({ success: false, message: "Event not found" });
+
+    if (req.user && req.user.role === 'BranchManager') {
+      const userBranchStr = (req.user.branch?._id || req.user.branch || '').toString();
+      const eventBranchStr = (existingEvent.branch?._id || existingEvent.branch || '').toString();
+      if (eventBranchStr !== userBranchStr) {
+        return res.status(403).json({ success: false, message: "Not authorized to update events for other branches." });
+      }
+      eventData.branch = userBranchStr;
+    }
+
     const event = await Event.findByIdAndUpdate(req.params.id, eventData, { returnDocument: 'after', runValidators: true });
-    if (!event) return res.status(404).json({ success: false, message: "Event not found" });
     
     const processed = processSingleEvent(event);
     if(req.app.get('io')) req.app.get('io').emit('event_updated', processed);
@@ -130,8 +148,18 @@ exports.updateEvent = async (req, res) => {
 // ADMIN: Delete Event
 exports.deleteEvent = async (req, res) => {
   try {
-    const event = await Event.findByIdAndDelete(req.params.id);
-    if (!event) return res.status(404).json({ success: false, message: "Event not found" });
+    const existingEvent = await Event.findById(req.params.id);
+    if (!existingEvent) return res.status(404).json({ success: false, message: "Event not found" });
+
+    if (req.user && req.user.role === 'BranchManager') {
+      const userBranchStr = (req.user.branch?._id || req.user.branch || '').toString();
+      const eventBranchStr = (existingEvent.branch?._id || existingEvent.branch || '').toString();
+      if (eventBranchStr !== userBranchStr) {
+        return res.status(403).json({ success: false, message: "Not authorized to delete events for other branches." });
+      }
+    }
+
+    await Event.findByIdAndDelete(req.params.id);
     
     if(req.app.get('io')) req.app.get('io').emit('event_deleted', req.params.id);
     

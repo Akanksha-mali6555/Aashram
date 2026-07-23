@@ -1,5 +1,7 @@
-// Force Node.js to resolve IPv4 addresses first to prevent ENETUNREACH IPv6 errors with Gmail SMTP
-require('dns').setDefaultResultOrder('ipv4first');
+// Force Node.js to resolve IPv4 addresses first and use reliable public DNS servers to prevent querySrv ECONNREFUSED with MongoDB Atlas & Gmail SMTP
+const dns = require('dns');
+dns.setDefaultResultOrder('ipv4first');
+try { dns.setServers(['8.8.8.8', '1.1.1.1', '8.8.4.4']); } catch(e) {}
 
 const app = require("./app");
 const connectDB = require("./config/db");

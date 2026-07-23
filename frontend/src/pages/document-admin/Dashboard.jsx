@@ -51,6 +51,8 @@ const DocumentAdminDashboard = () => {
   const [formData, setFormData] = useState({ title: "", description: "", category: "Reports", branchId: "" });
   const [file, setFile] = useState(null);
   const [formLoading, setFormLoading] = useState(false);
+  const [viewTab, setViewTab] = useState("library"); // "library" or "requests"
+  const [myRequests, setMyRequests] = useState([]);
 
   const location = useLocation();
   const isDashboard = location.pathname.includes('/dashboard');
@@ -60,7 +62,19 @@ const DocumentAdminDashboard = () => {
   useEffect(() => {
     fetchBranches();
     fetchAllDocuments();
+    fetchMyRequests();
   }, []);
+
+  const fetchMyRequests = async () => {
+    try {
+      const res = await api.get('/documents/requests');
+      if (res.data.success) {
+        setMyRequests(res.data.requests || []);
+      }
+    } catch (err) {
+      console.error("Error fetching my requests:", err);
+    }
+  };
 
   useEffect(() => {
     fetchDocuments();
@@ -134,11 +148,15 @@ const DocumentAdminDashboard = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!currentDocument && !file) {
-      alert("Please select a PDF file to upload");
+      alert("Please select a document file to upload");
       return;
     }
 
     const data = new FormData();
+    data.append("requestType", currentDocument ? "Update" : "Create");
+    if (currentDocument) {
+      data.append("targetDocumentId", currentDocument._id);
+    }
     data.append("title", formData.title);
     data.append("description", formData.description);
     data.append("category", formData.category);
@@ -151,17 +169,13 @@ const DocumentAdminDashboard = () => {
 
     try {
       setFormLoading(true);
-      if (currentDocument) {
-        await api.put(`/documents/${currentDocument._id}`, data, {
-          headers: { "Content-Type": "multipart/form-data" }
-        });
-      } else {
-        await api.post(`/documents`, data, {
-          headers: { "Content-Type": "multipart/form-data" }
-        });
-      }
+      const res = await api.post(`/documents/requests`, data, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+      alert(res.data.message || "Document request submitted to Trustee for approval.");
       setIsUploadModalOpen(false);
       resetForm();
+      fetchMyRequests();
       fetchDocuments();
       fetchAllDocuments();
     } catch (err) {
@@ -174,14 +188,19 @@ const DocumentAdminDashboard = () => {
   const handleDelete = async () => {
     if (!currentDocument) return;
     try {
-      await api.delete(`/documents/${currentDocument._id}`, {
-        data: { reason: deletionReason }
-      });
+      const data = {
+        requestType: "Delete",
+        targetDocumentId: currentDocument._id,
+        deletionReason: deletionReason
+      };
+      const res = await api.post('/documents/requests', data);
+      alert(res.data.message || "Deletion request submitted to Trustee for approval.");
       setIsDeleteModalOpen(false);
+      fetchMyRequests();
       fetchDocuments();
       fetchAllDocuments();
     } catch (err) {
-      alert("Error requesting deletion");
+      alert(err.response?.data?.message || "Error requesting deletion");
     }
   };
 
@@ -337,6 +356,113 @@ const DocumentAdminDashboard = () => {
           </>
         ) : (
           <>
+            {/* View Tabs */}
+            <div className="flex bg-slate-200/60 p-1.5 rounded-2xl mb-6 w-full md:w-fit gap-1">
+              <button 
+                onClick={() => setViewTab('library')}
+                className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${viewTab === 'library' ? 'bg-white shadow-md text-indigo-900' : 'text-slate-600 hover:text-slate-900'}`}
+              >
+                <FiFileText /> Document Library
+              </button>
+              <button 
+                onClick={() => setViewTab('requests')}
+                className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 relative ${viewTab === 'requests' ? 'bg-white shadow-md text-indigo-900' : 'text-slate-600 hover:text-slate-900'}`}
+              >
+                <FiClock /> My Approval Requests
+                {myRequests.filter(r => r.status === 'Pending').length > 0 && (
+                  <span className="bg-amber-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm">
+                    {myRequests.filter(r => r.status === 'Pending').length}
+                  </span>
+                )}
+              </button>
+            </div>
+
+            {viewTab === 'requests' ? (
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                <div className="p-4 md:p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-900">Submitted Approval Requests</h3>
+                    <p className="text-xs text-slate-500 mt-0.5">Track real-time status of document CRUD requests submitted for Trustee approval.</p>
+                  </div>
+                  <button 
+                    onClick={fetchMyRequests} 
+                    className="text-xs font-bold bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-slate-700 hover:bg-slate-50"
+                  >
+                    Refresh
+                  </button>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50 text-slate-500 text-xs uppercase font-bold tracking-wider border-b border-slate-100">
+                        <th className="px-6 py-4">Request Type</th>
+                        <th className="px-6 py-4">Document Info</th>
+                        <th className="px-6 py-4">Submitted On</th>
+                        <th className="px-6 py-4">Status</th>
+                        <th className="px-6 py-4">Trustee Remarks</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 text-sm">
+                      {myRequests.length === 0 ? (
+                        <tr>
+                          <td colSpan="5" className="px-6 py-12 text-center text-slate-400">
+                            No approval requests submitted yet.
+                          </td>
+                        </tr>
+                      ) : (
+                        myRequests.map((req) => (
+                          <tr key={req._id} className="hover:bg-slate-50/50 transition-colors">
+                            <td className="px-6 py-4 font-bold">
+                              <span className={`px-2.5 py-1 rounded-md text-xs font-black uppercase tracking-wider ${
+                                req.requestType === 'Create' ? 'bg-blue-100 text-blue-800' :
+                                req.requestType === 'Update' ? 'bg-amber-100 text-amber-800' :
+                                'bg-rose-100 text-rose-800'
+                              }`}>
+                                {req.requestType}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <p className="font-bold text-slate-800">{req.documentData?.title || 'N/A'}</p>
+                              <p className="text-xs text-slate-500">{req.documentData?.category} • {req.documentData?.pdfName || ''}</p>
+                            </td>
+                            <td className="px-6 py-4 text-xs text-slate-500 font-medium">
+                              {new Date(req.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className={`px-3 py-1 rounded-full text-xs font-bold border inline-flex items-center gap-1.5 ${
+                                req.status === 'Approved' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                req.status === 'Rejected' ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                                'bg-amber-50 text-amber-700 border-amber-200 animate-pulse'
+                              }`}>
+                                <span className={`w-2 h-2 rounded-full ${
+                                  req.status === 'Approved' ? 'bg-emerald-500' :
+                                  req.status === 'Rejected' ? 'bg-rose-500' :
+                                  'bg-amber-500'
+                                }`} />
+                                {req.status}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-xs text-slate-600 max-w-xs">
+                              {req.trusteeRemarks ? (
+                                <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                                  <p className="font-medium text-slate-800">{req.trusteeRemarks}</p>
+                                  {req.reviewedBy && (
+                                    <p className="text-[10px] text-slate-400 mt-1">Reviewed by: {req.reviewedBy.name || req.reviewedBy.fullName || 'Trustee'}</p>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-slate-400 italic">No remarks yet</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : (
+              <>
             {/* Action Bar */}
         <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 mb-6 flex flex-col md:flex-row gap-4 justify-between items-center">
           <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
@@ -374,7 +500,7 @@ const DocumentAdminDashboard = () => {
             onClick={() => { resetForm(); setIsUploadModalOpen(true); }}
             className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-medium flex items-center justify-center gap-2 shadow-lg shadow-indigo-200 transition-all active:scale-95"
           >
-            <FiPlus /> Upload Document
+            <FiPlus /> Submit Document Request
           </button>
         </div>
 
@@ -516,6 +642,8 @@ const DocumentAdminDashboard = () => {
             </table>
           </div>
         </div>
+        </>
+        )}
         </>
         )}
       </main>

@@ -57,7 +57,7 @@ const Profile = () => {
         name: user.displayName || user.name || '',
         email: user.email || '',
         mobile: user.mobile || user.phone || '',
-        managerId: user.managerId || user._id?.substring(0, 10).toUpperCase() || 'MGR-2023-001',
+        managerId: user.managerId || user._id?.substring(0, 10).toUpperCase() || 'BM-001',
         joiningDate: user.createdAt ? new Date(user.createdAt).toISOString().split('T')[0] : 'Not Available',
         address: user.address || '',
         profilePhoto: user.profilePhoto || ''
