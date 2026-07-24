@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiPlus, FiTrash2, FiEdit2, FiBell, FiX, FiCheckCircle, FiClock, FiSend, FiFileText, FiBarChart2, FiUsers, FiMapPin, FiMessageCircle, FiMail, FiSmartphone, FiSearch, FiUser, FiEye } from 'react-icons/fi';
+import { FiPlus, FiTrash2, FiEdit2, FiBell, FiX, FiCheckCircle, FiClock, FiSend, FiFileText, FiBarChart2, FiUsers, FiMapPin, FiMessageCircle, FiMail, FiSmartphone, FiSearch, FiUser, FiEye, FiEyeOff } from 'react-icons/fi';
 import api from "../../utils/api";
+import toast from 'react-hot-toast';
 import { useTableFeatures } from '../../hooks/useTableFeatures';
 import TablePagination from '../../components/TablePagination';
 import { useAuth } from '../../context/AuthContext';
@@ -274,12 +275,33 @@ const Announcements = () => {
   };
 
   const handleDelete = async (id) => {
-    if(window.confirm("Delete this announcement permanently?")) {
+    if (window.confirm("Are you sure you want to delete this announcement permanently from the system?")) {
       try {
-        await api.delete(`/announcements/${id}`);
-        fetchAnnouncements();
+        const res = await api.delete(`/announcements/${id}`);
+        if (res.data.success) {
+          toast.success("Announcement permanently deleted!");
+        } else {
+          toast.error(res.data.message || "Failed to delete announcement.");
+        }
+        await fetchAnnouncements();
       } catch (err) {
-        console.error("Failed to delete.", err);
+        console.error("Failed to delete announcement.", err);
+        toast.error(err.response?.data?.message || "Failed to delete announcement.");
+      }
+    }
+  };
+
+  const handleDismiss = async (id) => {
+    if (window.confirm("Remove this announcement from your view? (It will remain in the system for its creator and other recipients)")) {
+      try {
+        const res = await api.post(`/announcements/${id}/dismiss`);
+        if (res.data.success) {
+          toast.success("Announcement removed from your view.");
+        }
+        await fetchAnnouncements();
+      } catch (err) {
+        console.error("Failed to remove announcement from view.", err);
+        toast.error(err.response?.data?.message || "Failed to remove announcement from view.");
       }
     }
   };
@@ -411,6 +433,9 @@ const Announcements = () => {
                     return Math.floor(seconds) + "s ago";
                   };
 
+                  const creatorId = ann.createdBy?._id || ann.createdBy;
+                  const isMine = Boolean(creatorId && user?._id && String(creatorId) === String(user._id));
+
                   return (
                     <motion.div 
                       key={ann._id} 
@@ -446,10 +471,21 @@ const Announcements = () => {
                           </div>
                         </div>
                         
-                        <div className="flex items-center gap-2">
-                          <button onClick={() => handleEdit(ann)} className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors" title="Edit"><FiEdit2 size={16} /></button>
-                          <button onClick={() => handleDelete(ann._id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-full transition-colors" title="Delete"><FiTrash2 size={16} /></button>
-                        </div>
+                        {isMine ? (
+                          <div className="flex items-center gap-1.5">
+                            <button onClick={() => handleEdit(ann)} className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors" title="Edit Announcement (Creator Only)"><FiEdit2 size={16} /></button>
+                            <button onClick={() => handleDelete(ann._id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-full transition-colors" title="Permanently Delete (Creator Only)"><FiTrash2 size={16} /></button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-2.5 py-1 rounded-full border border-slate-100 hidden sm:inline-block">
+                              Read Only
+                            </span>
+                            <button onClick={() => handleDismiss(ann._id)} className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-full transition-colors" title="Remove from My View">
+                              <FiEyeOff size={16} />
+                            </button>
+                          </div>
+                        )}
                       </div>
 
                       {/* Content Body */}

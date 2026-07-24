@@ -13,6 +13,7 @@ import heroBg from "../../assets/hero_bg.jpeg";
 import api from "../../utils/api";
 import { getCurrentLiveStream } from '../../services/liveService';
 import AudioPlayerWithLyrics from '../../components/AudioPlayerWithLyrics';
+import EventMedia from '../../components/EventMedia';
 
 const ASSETS_URL = import.meta.env.VITE_ASSETS_URL || "http://localhost:5000";
 
@@ -803,19 +804,33 @@ const Home = () => {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: false, amount: 0.1 }}
                     transition={{ duration: 0.6, delay: idx * 0.1 }}
-                    className="flex flex-col sm:flex-row bg-white rounded-2xl overflow-hidden group shadow-lg border border-gray-200 hover:shadow-2xl transition-all duration-500"
+                    className="flex flex-col md:flex-row bg-white rounded-3xl overflow-hidden group shadow-lg border border-stone-200 hover:shadow-2xl transition-all duration-500"
                   >
-                    <div className="sm:w-2/5 relative min-h-[250px] overflow-hidden">
-                      <div className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-700" style={{ backgroundImage: `url(${getImageUrl(event.featuredImage)})` }}></div>
+                    <div className="md:w-1/2 overflow-hidden shrink-0">
+                      <EventMedia 
+                        src={event.featuredImage || event.videoFile} 
+                        alt={event.title}
+                        aspectRatio="aspect-video h-full"
+                        objectFit="cover"
+                        allowLightbox={true}
+                        className="rounded-none md:rounded-l-3xl"
+                      />
                     </div>
-                    <div className="p-8 sm:w-3/5 flex flex-col justify-center relative z-10 bg-gray-50 border-l border-gray-200">
-                      <div className="text-primary font-bold text-xs mb-3 flex items-center gap-2 tracking-widest uppercase">
-                        <FaCalendarAlt />
-                        {new Date(event.eventDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    <div className="p-6 md:p-8 md:w-1/2 flex flex-col justify-between relative z-10 bg-gradient-to-b from-white to-stone-50/50">
+                      <div>
+                        <div className="flex items-center gap-3 mb-3">
+                          <span className="px-3 py-1 bg-amber-50 text-amber-800 border border-amber-200/60 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                            {event.branch?.name || "Global"}
+                          </span>
+                          <div className="text-primary font-bold text-xs flex items-center gap-1.5 tracking-wider uppercase">
+                            <FaCalendarAlt />
+                            {new Date(event.eventDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </div>
+                        </div>
+                        <h4 className="text-xl md:text-2xl font-serif font-bold text-caramel-deep mb-3 line-clamp-2 leading-tight group-hover:text-primary transition-colors">{event.title}</h4>
+                        <p className="text-caramel-dark mb-6 text-xs md:text-sm line-clamp-3 font-light leading-relaxed">{event.shortDescription || event.fullDescription}</p>
                       </div>
-                      <h4 className="text-2xl font-serif font-bold text-caramel-deep mb-3 line-clamp-2">{event.title}</h4>
-                      <p className="text-caramel-dark mb-6 text-sm line-clamp-3 font-light leading-relaxed">{event.shortDescription || event.fullDescription}</p>
-                      <Link to={`/events/${event.slug}`} className="self-start inline-flex items-center gap-2 text-gold font-bold text-xs uppercase tracking-widest hover:text-primary transition-colors">
+                      <Link to={`/events/${event.slug}`} className="self-start inline-flex items-center gap-2 px-5 py-2.5 bg-cream text-primary border border-gold hover:bg-gold hover:text-white font-bold text-xs uppercase tracking-widest rounded-full transition-all duration-300 shadow-sm">
                         View Details <FaChevronRight size={10} />
                       </Link>
                     </div>

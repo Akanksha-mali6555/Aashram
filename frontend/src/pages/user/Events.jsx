@@ -8,6 +8,7 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import api from "../../utils/api";
 import { getCurrentLiveStream, getLiveStreamsHistory } from "../../services/liveService";
+import EventMedia from "../../components/EventMedia";
 
 const ASSETS_URL = import.meta.env.VITE_ASSETS_URL || "http://localhost:5000";
 
@@ -633,18 +634,20 @@ const UserEvents = () => {
                   key={event._id}
                   className="group bg-white rounded-3xl overflow-hidden shadow-lg shadow-stone-200/50 hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 border border-stone-100 flex flex-col"
                 >
-                  <div className="relative aspect-video overflow-hidden bg-stone-100">
-                    <img 
-                      src={getImageUrl(event.featuredImage)} 
+                  <div className="relative overflow-hidden bg-stone-100 rounded-t-3xl">
+                    <EventMedia 
+                      src={event.featuredImage || event.videoFile} 
                       alt={event.title}
-                      className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+                      aspectRatio="aspect-video"
+                      objectFit="cover"
+                      allowLightbox={true}
                     />
                     
                     {/* Status Badge */}
-                    <div className="absolute top-4 left-4 flex gap-2 z-20">
+                    <div className="absolute top-3 left-3 flex gap-2 z-20 pointer-events-none">
                       <span className={`px-3 py-1 backdrop-blur-md text-[9px] font-black rounded-full uppercase tracking-widest shadow-md flex items-center gap-2 ${
                         event.status === 'ongoing' ? 'bg-green-500/90 text-white' : 
-                        event.status === 'upcoming' ? 'bg-amber-500/90 text-white' : 'bg-stone-900/70 text-white'
+                        event.status === 'upcoming' ? 'bg-amber-500/90 text-white' : 'bg-stone-900/80 text-white'
                       }`}>
                         {event.status === 'ongoing' && <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>}
                         {event.status}
@@ -652,11 +655,11 @@ const UserEvents = () => {
                     </div>
 
                     {/* Date Badge */}
-                    <div className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-md rounded-xl shadow-xl overflow-hidden z-20 border border-white/60 text-center min-w-[3rem]">
-                      <div className="bg-amber-100 text-amber-700 text-[8px] font-black uppercase tracking-widest py-1">
+                    <div className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-md rounded-xl shadow-xl overflow-hidden z-20 border border-white/60 text-center min-w-[3rem] pointer-events-none">
+                      <div className="bg-amber-100 text-amber-800 text-[8px] font-black uppercase tracking-widest py-0.5 px-2">
                         {new Date(event.eventDate).toLocaleDateString('en-US', { month: 'short' })}
                       </div>
-                      <div className="text-lg font-black text-stone-900 py-1 bg-white">
+                      <div className="text-base font-black text-stone-900 py-0.5 bg-white">
                         {new Date(event.eventDate).getDate()}
                       </div>
                       {activeTab === 'past' && (

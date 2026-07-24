@@ -4,6 +4,7 @@ import { FaPlus, FaEdit, FaTrash, FaSpinner, FaCalendarAlt, FaSearch, FaMapMarke
 import { io } from "socket.io-client";
 import api from "../../utils/api";
 import { usePermissions } from '../../hooks/usePermissions';
+import EventMedia from "../../components/EventMedia";
 
 const ASSETS_URL = import.meta.env.VITE_ASSETS_URL || "http://localhost:5000";
 
@@ -318,30 +319,38 @@ const AdminEvents = () => {
               {filteredEvents.map((event, index) => (
                 <motion.div key={event._id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: index * 0.05 }} className="bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg transition-all group flex flex-col">
                   
-                  <div className="relative h-32 md:h-56 overflow-hidden shrink-0 bg-gray-50 flex items-center justify-center">
-                    <img src={getImageUrl(event.featuredImage)} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-gray-900/20 to-transparent pointer-events-none"></div>
+                  {/* MEDIA BANNER */}
+                  <div className="relative bg-stone-100 overflow-hidden rounded-t-3xl">
+                    <EventMedia 
+                      src={event.featuredImage || event.videoFile} 
+                      alt={event.title}
+                      aspectRatio="aspect-video"
+                      objectFit="cover"
+                      allowLightbox={true}
+                    />
                     
-                    <div className="absolute top-2 md:top-4 left-2 md:left-4">
-                      <span className={`px-2 md:px-4 py-1 md:py-1.5 backdrop-blur-md rounded-full text-[10px] md:text-xs font-bold uppercase tracking-widest text-gray-900 shadow-sm bg-white/90`}>
+                    {/* Status Badge */}
+                    <div className="absolute top-3 left-3 z-20 pointer-events-none">
+                      <span className="px-3 py-1 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-widest text-stone-900 shadow-sm bg-white/90">
                         {event.status}
                       </span>
                     </div>
                     
-                    <div className="absolute top-2 md:top-4 right-2 md:right-4 bg-white/95 backdrop-blur-sm rounded-xl md:rounded-2xl text-center overflow-hidden shadow-sm min-w-[3rem] md:min-w-[4rem] border border-gray-100">
-                      <div className="bg-gray-100 text-gray-500 text-[8px] md:text-[10px] font-bold uppercase tracking-widest py-1 md:py-2 border-b border-gray-200">{new Date(event.eventDate).toLocaleDateString("en-US", { month: "short" })}</div>
-                      <div className="text-lg md:text-2xl font-black text-gray-900 py-1.5 md:py-3">{new Date(event.eventDate).getDate()}</div>
-                    </div>
-                    
-                    <div className="absolute bottom-3 md:bottom-6 left-3 md:left-6 right-3 md:right-6">
-                      <span className="inline-block px-2 md:px-3 py-0.5 md:py-1 mb-1 md:mb-3 bg-blue-500/20 text-blue-100 backdrop-blur-sm rounded-full text-[8px] md:text-[10px] font-bold uppercase tracking-widest border border-blue-400/30">
-                        {event.branch?.name || "Global"}
-                      </span>
-                      <h2 className="text-white text-lg md:text-2xl font-bold line-clamp-1">{event.title}</h2>
+                    {/* Date Badge */}
+                    <div className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-md rounded-xl text-center overflow-hidden shadow-md min-w-[3rem] border border-white/60 pointer-events-none">
+                      <div className="bg-stone-100 text-stone-600 text-[8px] font-bold uppercase tracking-widest py-0.5 px-2 border-b border-stone-200">{new Date(event.eventDate).toLocaleDateString("en-US", { month: "short" })}</div>
+                      <div className="text-base font-black text-stone-900 py-0.5">{new Date(event.eventDate).getDate()}</div>
                     </div>
                   </div>
 
-                  <div className="p-4 md:p-6 flex flex-col flex-1">
+                  <div className="p-5 md:p-6 flex flex-col flex-1">
+                    <div className="mb-2">
+                      <span className="inline-block px-2.5 py-0.5 bg-blue-50 text-blue-700 rounded-full text-[10px] font-bold uppercase tracking-wider border border-blue-200/60">
+                        {event.branch?.name || "Global"}
+                      </span>
+                    </div>
+                    
+                    <h2 className="text-stone-900 text-lg md:text-xl font-bold font-serif line-clamp-1 mb-2 group-hover:text-blue-600 transition-colors">{event.title}</h2>
                     <p className="text-gray-500 text-xs md:text-sm line-clamp-2 mb-3 md:mb-6 flex-1">{event.shortDescription || event.fullDescription}</p>
                     
                     <div className="flex flex-row items-center justify-between gap-2 mb-3 md:mb-6 bg-gray-50 p-3 md:p-4 rounded-xl md:rounded-2xl border border-gray-100 overflow-hidden">

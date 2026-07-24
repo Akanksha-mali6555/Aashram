@@ -5,6 +5,7 @@ import { FaCalendarAlt, FaMapMarkerAlt, FaSpinner, FaArrowLeft, FaClock, FaUserT
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import api from "../../utils/api";
+import EventMedia from "../../components/EventMedia";
 
 const EventDetails = () => {
   const { slug } = useParams();
@@ -91,13 +92,16 @@ const EventDetails = () => {
                 </div>
               </div>
 
-              {/* Right: Image */}
+              {/* Right: Hero Media */}
               <div className="w-full lg:w-1/2">
-                <div className="rounded-2xl overflow-hidden shadow-md border border-gray-200 bg-gray-50 aspect-video lg:aspect-[4/3] w-full">
-                  <img 
-                    src={event.featuredImage || 'https://via.placeholder.com/1200x500'} 
+                <div className="rounded-3xl overflow-hidden shadow-xl border border-stone-200 bg-stone-100 w-full">
+                  <EventMedia 
+                    src={event.featuredImage || event.videoFile} 
                     alt={event.title}
-                    className="w-full h-full object-cover"
+                    aspectRatio="aspect-video lg:aspect-[4/3]"
+                    objectFit="cover"
+                    allowLightbox={true}
+                    className="rounded-3xl"
                   />
                 </div>
               </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FaRupeeSign, FaSpinner, FaBuilding, FaFileAlt, FaUsers, FaCalendarAlt, FaBullhorn, FaUserShield, FaHandHoldingHeart } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
+import { FaRupeeSign, FaSpinner, FaBuilding, FaFileAlt, FaUsers, FaCalendarAlt, FaBullhorn, FaUserShield, FaHandHoldingHeart, FaPlusCircle } from 'react-icons/fa';
 import { FiActivity, FiShield, FiClock } from 'react-icons/fi';
 import api from "../../utils/api";
 import { useAuth } from "../../context/AuthContext";
@@ -72,11 +73,19 @@ const TrusteeDashboard = () => {
 
   return (
     <div className="space-y-6 md:space-y-8 p-4 md:p-6 lg:p-8 pb-12 w-full bg-transparent text-gray-900 font-sans overflow-hidden">
-      <div>
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 flex items-center gap-3 tracking-tight">
-          <FaUserShield className="text-gray-700" /> Trustee Dashboard
-        </h1>
-        <p className="text-sm text-gray-500 mt-2">Overview of trust activities and performance.</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 flex items-center gap-3 tracking-tight">
+            <FaUserShield className="text-gray-700" /> Trustee Dashboard
+          </h1>
+          <p className="text-sm text-gray-500 mt-2">Overview of trust activities, official notices, and performance.</p>
+        </div>
+        <Link 
+          to="/trustee/notice-generator" 
+          className="bg-[#be1e4d] hover:bg-[#a01640] text-white px-6 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-95 text-sm shrink-0"
+        >
+          <FaFileAlt /> Issue Notice (letterhead)
+        </Link>
       </div>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">

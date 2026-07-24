@@ -31,9 +31,14 @@ const announcementSchema = new mongoose.Schema({
   emailIntegration: { type: Boolean, default: false },
   dashboardNotification: { type: Boolean, default: true },
   
-  // Authorship
-  createdBy: { type: mongoose.Schema.Types.ObjectId, required: false }, // Could be required if we want strict authorship
-  createdByModel: { type: String, enum: ['Admin', 'Trustee', 'BranchManager', 'DocumentAdmin', 'DocumentHandler', 'document_admin', 'Accountant'], required: false }
+  // Authorship & Ownership
+  createdBy: { type: mongoose.Schema.Types.ObjectId, refPath: 'createdByModel', required: false },
+  createdByModel: { type: String, enum: ['Admin', 'Trustee', 'BranchManager', 'DocumentAdmin', 'DocumentHandler', 'document_admin', 'Accountant'], required: false },
+  createdByRole: { type: String },
+  createdByPanel: { type: String },
+
+  // Self view dismissal (Remove from My View)
+  dismissedBy: [{ type: mongoose.Schema.Types.ObjectId }]
 }, { timestamps: true });
 
 module.exports = mongoose.model("Announcement", announcementSchema);

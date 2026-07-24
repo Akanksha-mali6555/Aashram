@@ -48,9 +48,37 @@
     border: 2px solid #FFF8E7; /* Padding around thumb */
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(to bottom, #E65C1C, #FF671F);
+    background: linear-gradient(to bottom, #FF8A4D, #FF671F);
   }
+}
 
+/* Quill Notice Editor Styling */
+.ql-toolbar.ql-snow {
+  border-top-left-radius: 0.75rem;
+  border-top-right-radius: 0.75rem;
+  border-color: #e5e7eb !important;
+  background-color: #f9fafb;
+}
+.ql-container.ql-snow {
+  border-bottom-left-radius: 0.75rem;
+  border-bottom-right-radius: 0.75rem;
+  border-color: #e5e7eb !important;
+  font-family: 'Mukta', 'Outfit', sans-serif !important;
+}
+.ql-editor {
+  min-height: 220px;
+  font-size: 15px !important;
+  line-height: 1.85 !important;
+  padding: 20px 24px !important;
+  color: #111827 !important;
+}
+.ql-editor.ql-blank::before {
+  left: 24px !important;
+  font-style: normal !important;
+  color: #9ca3af !important;
+}
+
+@layer base {
   /* Hide Google Translate completely */
   /* Hide Google Translate completely */
   #google_translate_element,
@@ -155,4 +183,74 @@
     transform: translate(0px, 0px) scale(1);
   }
 }
+
+/* Custom Quill Editor & Notice Content Body Styling */
+.ql-container.ql-snow {
+  border-bottom-left-radius: 0.75rem;
+  border-bottom-right-radius: 0.75rem;
+  font-family: 'Mukta', sans-serif;
+}
+
+.ql-toolbar.ql-snow {
+  border-top-left-radius: 0.75rem;
+  border-top-right-radius: 0.75rem;
+  background-color: #f9fafb;
+}
+
+.ql-editor {
+  min-height: 220px;
+  font-size: 1rem;
+  line-height: 1.85;
+  color: #111827;
+  padding: 16px 20px;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.ql-editor p, 
+.ql-editor ul, 
+.ql-editor ol, 
+.ql-editor blockquote,
+.notice-content p,
+.notice-content ul,
+.notice-content ol,
+.notice-content blockquote {
+  margin-bottom: 1rem;
+  line-height: 1.85;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.ql-editor ul, .notice-content ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+}
+
+.ql-editor ol, .notice-content ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+}
+
+.ql-editor h1, .notice-content h1 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  margin-bottom: 0.75rem;
+}
+
+.ql-editor h2, .notice-content h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.ql-editor h3, .notice-content h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.ql-align-center { text-align: center !important; }
+.ql-align-right { text-align: right !important; }
+.ql-align-justify { text-align: justify !important; }
+.ql-align-left { text-align: left !important; }
  

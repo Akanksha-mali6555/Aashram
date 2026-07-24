@@ -199,28 +199,8 @@ const Layout = ({ children, user }) => {
       { name: "Receipts", path: "/trustee/receipts", icon: <FaReceipt /> },
       { name: "Audio Tracks", path: "/trustee/audio", icon: <FaMusic /> },
       { name: "News", path: "/trustee/news", icon: <FaBullhorn /> },
+      { name: "Issue Notice", path: "/trustee/notice-generator", icon: <FaFileAlt /> },
     ];
-
-    // Safely parse permissions if they were saved as a JSON string in DB
-    let userPerms = user.permissions || [];
-    if (typeof userPerms === "string") {
-      try {
-        userPerms = JSON.parse(userPerms);
-      } catch (e) {
-        userPerms = [];
-      }
-    }
-    if (!Array.isArray(userPerms)) userPerms = [];
-
-    if (
-      userPerms.some((p) => p.module === "Issue Notice" || p === "Issue Notice")
-    ) {
-      navItems.push({
-        name: "Issue Notice",
-        path: "/trustee/notice-generator",
-        icon: <FaFileAlt />,
-      });
-    }
   } else if (user?.role === "BranchManager") {
     navItems = [
       { name: "Dashboard", path: "/branch/dashboard", icon: <FaHome /> },
@@ -248,6 +228,7 @@ const Layout = ({ children, user }) => {
       { name: "Events", path: "/branch/events", icon: <FaCalendarAlt /> },
 
       { name: "News", path: "/branch/news", icon: <FaBullhorn /> },
+      { name: "Issue Notice", path: "/branch/notice-generator", icon: <FaFileAlt /> },
     ];
   } else if (user?.role === "Accountant") {
     navItems = [
@@ -343,6 +324,7 @@ const Layout = ({ children, user }) => {
       },
       { name: "Trustees", path: "/admin/trustees", icon: <FaUserShield /> },
       { name: "News", path: "/admin/news", icon: <FaBullhorn /> },
+      { name: "Issue Notice", path: "/admin/notice-generator", icon: <FaFileAlt /> },
     ];
   }
 

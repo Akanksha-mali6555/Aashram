@@ -11,10 +11,23 @@ let browserInstance = null;
 
 const getBrowser = async () => {
   if (!browserInstance || !browserInstance.isConnected()) {
-    browserInstance = await puppeteer.launch({
+    const launchOptions = {
       headless: "new",
       args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
+    };
+    if (process.platform === 'win32') {
+      const chromePath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+      const chromePath86 = 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe';
+      const edgePath = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
+      if (fs.existsSync(chromePath)) {
+        launchOptions.executablePath = chromePath;
+      } else if (fs.existsSync(chromePath86)) {
+        launchOptions.executablePath = chromePath86;
+      } else if (fs.existsSync(edgePath)) {
+        launchOptions.executablePath = edgePath;
+      }
+    }
+    browserInstance = await puppeteer.launch(launchOptions);
   }
   return browserInstance;
 };

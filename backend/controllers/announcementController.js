@@ -9,6 +9,19 @@ const Devotee = require('../models/Devotee');
 const { sendAnnouncementEmail } = require('../services/mailService');
 
 
+const getPanelName = (role) => {
+  switch (role) {
+    case 'Admin': return 'Main Admin Panel';
+    case 'Trustee': return 'Trust Panel';
+    case 'BranchManager': return 'Branch Manager Panel';
+    case 'DocumentAdmin':
+    case 'DocumentHandler':
+    case 'document_admin': return 'Document Handler Panel';
+    case 'Accountant': return 'Accountant Panel';
+    default: return 'System Panel';
+  }
+};
+
 // Management Endpoint - For Admins, Branch Managers, Trustees to see announcements they manage/created
 exports.getAllAnnouncements = async (req, res) => {
   try {
@@ -16,20 +29,23 @@ exports.getAllAnnouncements = async (req, res) => {
     let query = {};
 
     if (user.role === 'Admin') {
-      // Admin sees all
+      // Admin sees all announcements
     } else {
       let targetConditions = [];
 
       if (user.role === 'BranchManager') {
+        const bId = user.branchId || user.branch?._id || user.branch;
         targetConditions = [
           { audienceType: 'All Branches' },
+          { audienceType: 'All Users' },
           { targetRoles: 'BranchManager' },
-          { targetBranches: user.branchId },
+          { targetBranches: bId },
           { targetUsers: user._id }
         ];
       } else if (user.role === 'Trustee') {
         targetConditions = [
           { audienceType: 'All Trust Members' },
+          { audienceType: 'All Users' },
           { targetRoles: user.systemRole || 'Trust Member' },
           { targetUsers: user._id }
         ];
@@ -58,7 +74,13 @@ exports.getAllAnnouncements = async (req, res) => {
       }
     }
 
-    const announcements = await Announcement.find(query).sort({ createdAt: -1 }).lean();
+    // Exclude announcements that the current user has dismissed from their view
+    query.dismissedBy = { $ne: user._id };
+
+    const announcements = await Announcement.find(query)
+      .populate('createdBy', 'name email role profilePhoto')
+      .sort({ createdAt: -1 })
+      .lean();
     
     // Attach read counts
     const announcementIds = announcements.map(a => a._id);
@@ -87,14 +109,18 @@ exports.createAnnouncement = async (req, res) => {
   try {
     const user = req.user;
     if (user.role === 'BranchManager') {
-      const bId = user.branch?._id || user.branch;
-      req.body.audienceType = ['Specific Branches'];
-      if (bId) {
+      const bId = user.branchId || user.branch?._id || user.branch;
+      if (!req.body.audienceType || req.body.audienceType.length === 0) {
+        req.body.audienceType = ['All Branches'];
+      }
+      if (bId && (!req.body.targetBranches || req.body.targetBranches.length === 0)) {
         req.body.targetBranches = [bId];
       }
     }
     req.body.createdBy = user._id;
     req.body.createdByModel = (user.role === 'document_admin' || user.role === 'DocumentHandler') ? 'DocumentAdmin' : user.role;
+    req.body.createdByRole = user.role;
+    req.body.createdByPanel = getPanelName(user.role);
     
     const announcement = new Announcement(req.body);
     await announcement.save();
@@ -173,8 +199,14 @@ exports.updateAnnouncement = async (req, res) => {
     const announcement = await Announcement.findById(req.params.id);
     if (!announcement) return res.status(404).json({ success: false, message: 'Announcement not found' });
 
-    if (req.user.role !== 'Admin' && String(announcement.createdBy) !== String(req.user._id)) {
-      return res.status(403).json({ success: false, message: 'Unauthorized to edit this announcement' });
+    const creatorId = announcement.createdBy?._id || announcement.createdBy;
+    const isCreator = creatorId && String(creatorId) === String(req.user._id);
+
+    if (!isCreator) {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Unauthorized: Only the original creator of an announcement can edit it.' 
+      });
     }
 
     Object.assign(announcement, req.body);
@@ -242,17 +274,23 @@ exports.deleteAnnouncement = async (req, res) => {
     const announcement = await Announcement.findById(req.params.id);
     if (!announcement) return res.status(404).json({ success: false, message: "Announcement not found" });
 
-    // Permissions check
-    if (req.user.role !== 'Admin' && String(announcement.createdBy) !== String(req.user._id)) {
-      return res.status(403).json({ success: false, message: "Unauthorized to delete this announcement" });
+    const creatorId = announcement.createdBy?._id || announcement.createdBy;
+    const isCreator = creatorId && String(creatorId) === String(req.user._id);
+
+    // Only the original creator can permanently delete the announcement from the system
+    if (!isCreator) {
+      return res.status(403).json({ 
+        success: false, 
+        message: "Unauthorized: Only the original creator can permanently delete this announcement from the system." 
+      });
     }
 
     await Announcement.findByIdAndDelete(req.params.id);
     await AnnouncementRecipient.deleteMany({ announcementId: req.params.id });
     
-    res.status(200).json({ success: true, message: "Announcement deleted successfully" });
+    return res.status(200).json({ success: true, message: "Announcement permanently deleted successfully" });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -350,7 +388,12 @@ exports.dismissNotification = async (req, res) => {
       { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }
     );
 
-    res.status(200).json({ success: true, data: receipt });
+    // Also update dismissedBy on Announcement document so it is hidden from the user's dashboard view
+    await Announcement.findByIdAndUpdate(id, {
+      $addToSet: { dismissedBy: user._id }
+    });
+
+    res.status(200).json({ success: true, message: "Announcement removed from your view", data: receipt });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

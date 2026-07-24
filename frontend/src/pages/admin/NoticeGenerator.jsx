@@ -203,29 +203,29 @@ const NoticeGenerator = () => {
                  </div>
                  
                  {/* Main Content Area */}
-                 <div className="flex-1 pl-[5mm] pr-[10mm] pt-[5mm] flex flex-col relative">
+                 <div className="flex-1 pl-[15mm] pr-[15mm] pt-[5mm] pb-[8mm] flex flex-col relative overflow-hidden font-['Mukta']">
                     
-                    <div className="flex justify-between text-[11pt] text-[#002366] font-bold mb-6">
+                    <div className="flex justify-between text-[11.5pt] text-[#002366] font-bold mb-5 shrink-0">
                       <div>जावक क्र. : {formData.outwardNo || 'Draft'}</div>
                       <div>दिनांक : {new Date(formData.date).toLocaleDateString('en-IN')}</div>
                     </div>
 
                     {formData.to && (
-                      <div className="text-[13pt] text-gray-900 font-bold mb-4 leading-snug">
+                      <div className="text-[12.5pt] text-gray-900 font-bold mb-4 leading-snug shrink-0">
                         प्रति,<br/>
                         {formData.to}
                       </div>
                     )}
 
                     {formData.subject && (
-                      <div className="text-[14pt] text-center text-gray-900 font-bold mb-6">
+                      <div className="text-[13.5pt] text-center text-gray-900 font-bold mb-6 shrink-0">
                         विषय: {formData.subject}
                       </div>
                     )}
 
-                    <div className="text-[13pt] text-gray-900 leading-relaxed text-justify flex-1 prose min-h-[300px]" dangerouslySetInnerHTML={{ __html: formData.noticeContent }} />
+                    <div className="text-[12.5pt] text-gray-900 leading-[1.85] text-justify flex-1 notice-content max-w-none break-words overflow-wrap-break-word min-h-[300px]" dangerouslySetInnerHTML={{ __html: formData.noticeContent }} />
 
-                    <div className="absolute bottom-10 right-10 text-center text-[#002366] text-[12pt] font-bold leading-snug">
+                    <div className="mt-10 text-right self-end text-[#002366] text-[12pt] font-bold leading-snug shrink-0 pr-4">
                       <div>सचिव</div>
                       <div>श्री गुरुमुर्ती रुद्रपशुपती</div>
                       <div>लिंगायत मठ</div>
